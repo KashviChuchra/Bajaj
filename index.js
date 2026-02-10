@@ -8,7 +8,6 @@ app.use(express.json());
 const EMAIL = process.env.OFFICIAL_EMAIL;
 
 
-
 const fibonacci = (n) => {
   const res = [];
   let a = 0, b = 1;
@@ -21,13 +20,13 @@ const fibonacci = (n) => {
 
 const isPrime = (num) => {
   if (num < 2) return false;
-  for (let i = 2; i * i <= num; i++)
+  for (let i = 2; i * i <= num; i++) {
     if (num % i === 0) return false;
+  }
   return true;
 };
 
-const gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
-
+const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
 const lcm = (a, b) => (a * b) / gcd(a, b);
 
 // ---------- Health API ----------
@@ -38,7 +37,7 @@ app.get("/health", (req, res) => {
   });
 });
 
-
+// ---------- BFHL API ----------
 app.post("/bfhl", async (req, res) => {
   try {
     const keys = Object.keys(req.body);
@@ -53,7 +52,6 @@ app.post("/bfhl", async (req, res) => {
 
     const key = keys[0];
     const value = req.body[key];
-
     let data;
 
     switch (key) {
@@ -81,7 +79,8 @@ app.post("/bfhl", async (req, res) => {
         data = value.reduce((a, b) => gcd(a, b));
         break;
 
-         case "AI":
+  
+      case "AI":
         if (typeof value !== "string") {
           throw new Error("Invalid AI input");
         }
@@ -91,17 +90,25 @@ app.post("/bfhl", async (req, res) => {
           {
             contents: [
               {
-                parts: [{ text: value }]
+                parts: [
+                  {
+                    text: `Reply with EXACTLY ONE WORD only.\nQuestion: ${value}`
+                  }
+                ]
               }
             ]
           }
         );
 
-        data =
-  aiResponse.data?.candidates?.[0]?.content?.parts?.[0]?.text
-    ?.replace(/\*\*/g, "")
-    ?.trim() || "Unavailable";
+        const rawText =
+          aiResponse.data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
+        
+        data = rawText
+          .replace(/\*\*/g, "")            
+          .replace(/[^a-zA-Z0-9 ]/g, "")  
+          .trim()
+          .split(/\s+/)[0] || "Unavailable";
 
         break;
 
