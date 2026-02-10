@@ -43,7 +43,6 @@ app.post("/bfhl", async (req, res) => {
   try {
     const keys = Object.keys(req.body);
 
-    
     if (keys.length !== 1) {
       return res.status(400).json({
         is_success: false,
@@ -82,39 +81,28 @@ app.post("/bfhl", async (req, res) => {
         data = value.reduce((a, b) => gcd(a, b));
         break;
 
-      case "AI":
-  if (typeof value !== "string") {
-    throw new Error("Invalid AI input");
-  }
+         case "AI":
+        if (typeof value !== "string") {
+          throw new Error("Invalid AI input");
+        }
 
-  try {
-    const aiResponse = await axios.post(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        contents: [
+        const aiResponse = await axios.post(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
           {
-            parts: [{ text: value }]
+            contents: [
+              {
+                parts: [{ text: value }]
+              }
+            ]
           }
-        ]
-      }
-    );
-
-    data =
-      aiResponse.data?.candidates?.[0]?.content?.parts?.[0]?.text
-        ?.trim()
-        .split(/\s+/)[0] || "Unknown";
-
-  } catch (aiErr) {
-    console.error("Gemini error:", aiErr.response?.data || aiErr.message);
-    data = "Unavailable"; 
-  }
-  break;
-
-
+        );
 
         data =
-          aiResponse.data.candidates?.[0]?.content?.parts?.[0]?.text
-            ?.split(" ")[0] || "Unknown";
+  aiResponse.data?.candidates?.[0]?.content?.parts?.[0]?.text
+    ?.replace(/\*\*/g, "")
+    ?.trim() || "Unavailable";
+
+
         break;
 
       default:
@@ -136,7 +124,7 @@ app.post("/bfhl", async (req, res) => {
   }
 });
 
-// ---------- Server ----------
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
